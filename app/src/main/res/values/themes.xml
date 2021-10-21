@@ -1,0 +1,12 @@
+<resources>
+
+    <style name="Theme.MiHoYoAuthenticator" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:statusBarColor">#FFFFFF</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="welcome_theme" parent="android:Theme.Material.Light.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@drawable/ac_splash</item>
+    </style>
+
+</resources>
