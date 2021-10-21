@@ -147,7 +147,7 @@ fun MainActivity.UI() {
             isLoadingDialogShowing = true
             runCatching {
                 MiHoYoAPI.scanQRCode(u)
-                MiHoYoAPI.confirmQRCode(currentAccount,u).checkRetCode()
+                MiHoYoAPI.confirmQRCode(currentAccount,u)
                 toast("登录成功")
             }.onFailure {
                 processException(it)
