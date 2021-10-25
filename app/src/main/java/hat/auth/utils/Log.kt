@@ -3,6 +3,7 @@ package hat.auth.utils
 import android.util.Log
 import hat.auth.BuildConfig
 import okhttp3.logging.HttpLoggingInterceptor
+import java.io.Serializable
 
 @Suppress("unused")
 object Log {
@@ -13,8 +14,8 @@ object Log {
         if (debug) Log.d("OkLogger",it)
     }
 
-    fun d(tag: String,msg: String) {
-        if (debug) Log.d(tag, msg)
+    fun d(tag: String, msg: Serializable) {
+        if (debug) Log.d(tag, msg.toString())
     }
 
     fun i(tag: String,msg: String) = Log.i(tag, msg)

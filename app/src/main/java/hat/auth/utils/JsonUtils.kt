@@ -24,11 +24,7 @@ suspend fun getJson(
     headers: Map<String,String> = emptyMap(),
     postBody: RequestBody? = null
 ) = withContext(Dispatchers.IO) {
-    runCatching {
-        getText(url,client,headers,postBody).toJsonObject()
-    }.getOrElse {
-        throw IllegalStateException(it.message)
-    }
+    getText(url,client,headers,postBody).toJsonObject()
 }
 
 fun <T: Any> JsonElement.toDataClass(clazz: Class<T>): T = Gson().fromJson(this,clazz)

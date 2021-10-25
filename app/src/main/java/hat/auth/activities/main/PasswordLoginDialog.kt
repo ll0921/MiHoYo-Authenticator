@@ -1,4 +1,4 @@
-package hat.auth.activities
+package hat.auth.activities.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -19,8 +19,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.text.trimmedLength
+import hat.auth.activities.MainActivity
 import hat.auth.data.EncryptedPassword
-import hat.auth.data.PLData
 import hat.auth.utils.*
 import hat.auth.utils.GT3.start
 import hat.auth.utils.ui.CircularProgressWithText
@@ -61,7 +61,7 @@ private fun MainActivity.onGo() {
         afterTest = { params ->
             runCatching {
                 with(parseCaptchaData(params[0].toString())) {
-                    PLData(name,EncryptedPassword(password)).login(this).also {
+                    MiHoYoAuth.login(name,EncryptedPassword(password),this).also {
                         check(!it.exists()) { "已经存在相同UID的账户了" }
                     } addTo accountList
                 }

@@ -1,10 +1,11 @@
-package hat.auth.activities
+package hat.auth.activities.main
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.runtime.*
@@ -14,27 +15,38 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hat.auth.data.Account
-import hat.auth.utils.accountList
-import hat.auth.utils.removeFrom
+import hat.auth.BuildConfig
+import hat.auth.activities.MainActivity
+import hat.auth.data.IAccount
+import hat.auth.data.MiAccount
+import hat.auth.utils.*
 import hat.auth.utils.ui.CircleImage
 import hat.auth.utils.ui.IconButton
 import hat.auth.utils.ui.TextButton
+import kotlinx.coroutines.launch
 
 @Composable
 fun AccountsColumnItem(
-    account: Account,
+    ia: IAccount,
     avatar: ImageBitmap,
     onInfoClick: () -> Unit,
+    onTestClick: () -> Unit = {},
     onItemClick: () -> Unit,
 ) = Box(
     modifier = Modifier
         .fillMaxWidth()
         .clickable {
-            currentAccount = account
+            currentAccount = ia
             onItemClick()
         }
 ) {
+    var showInfoButton = true
+    val uid = if (ia !is MiAccount) {
+        showInfoButton = false
+        ia.uid
+    } else {
+        ia.guid
+    }
     Row(
         modifier = Modifier.padding(
             vertical = 12.5.dp,
@@ -51,12 +63,12 @@ fun AccountsColumnItem(
             modifier = Modifier.padding(start = 12.dp)
         ) {
             Text(
-                text = account.name,
+                text = ia.name,
                 fontSize = 20.sp,
                 color = c
             )
             Text(
-                text = account.guid,
+                text = uid,
                 color = c
             )
         }
@@ -64,22 +76,31 @@ fun AccountsColumnItem(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            IconButton(
-                tint = c,
-                icon = Icons.Outlined.Info,
-                onClick = {
-                    currentAccount = account
+            if (showInfoButton) {
+                IconButton(
+                    tint = c,
+                    icon = Icons.Outlined.Info,
+                ) {
+                    currentAccount = ia
                     onInfoClick()
                 }
-            )
+            }
+            if (!showInfoButton && BuildConfig.DEBUG) {
+                IconButton(
+                    tint = c,
+                    icon = Icons.Outlined.Build
+                ) {
+                    currentAccount = ia
+                    onTestClick()
+                }
+            }
             IconButton(
                 tint = c,
                 icon = Icons.Outlined.Delete,
-                onClick = {
-                    currentAccount = account
-                    isDialogShowing = true
-                }
-            )
+            ) {
+                currentAccount = ia
+                isDialogShowing = true
+            }
         }
     }
 }

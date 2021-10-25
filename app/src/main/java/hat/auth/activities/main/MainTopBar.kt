@@ -1,4 +1,4 @@
-package hat.auth.activities
+package hat.auth.activities.main
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -119,9 +119,11 @@ fun TopAppBar(
         }
     }
     LaunchedEffect(Unit) {
-        checkUpdate {
-            if (it.name != BuildConfig.VERSION_NAME) {
-                pointVisibility = true
+        if (!BuildConfig.DEBUG) {
+            checkUpdate {
+                if (it.name != BuildConfig.VERSION_NAME) {
+                    pointVisibility = true
+                }
             }
         }
     }

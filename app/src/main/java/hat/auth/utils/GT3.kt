@@ -20,14 +20,16 @@ object GT3 {
         isCanceledOnTouchOutside = true
     }
 
+    fun getConfig() = config
+
+    fun getGeetest() = utils.getGeetest()
+
     fun onDestroy() {
         utils.destory()
     }
 
-    fun init(activity: Activity) {
-        ioScope.launch {
-            utils = GT3GeetestUtils(activity)
-        }
+    fun Activity.initGeetest() = ioScope.launch {
+        utils = GT3GeetestUtils(this@initGeetest)
     }
 
     fun init(

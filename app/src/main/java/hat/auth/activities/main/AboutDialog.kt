@@ -1,4 +1,4 @@
-package hat.auth.activities
+package hat.auth.activities.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,6 +14,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import hat.auth.BuildConfig
+import hat.auth.activities.MainActivity
 import hat.auth.utils.*
 
 private var versionName = BuildConfig.VERSION_NAME

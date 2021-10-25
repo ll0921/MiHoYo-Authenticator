@@ -3,7 +3,7 @@ plugins {
     id("kotlin-android")
 }
 
-val vCompose = "1.1.0-alpha05"
+val vCompose = "1.1.0-alpha06"
 
 android {
 
@@ -26,15 +26,13 @@ android {
 
         debug {
             versionNameSuffix = "-debug"
+            applicationIdSuffix = ".debug"
         }
 
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro")
             versionNameSuffix = "-release"
         }
 
@@ -42,11 +40,11 @@ android {
             initWith(getByName("debug"))
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro")
             versionNameSuffix = "-beta"
+            isDebuggable = true
+            isJniDebuggable = true
+            isRenderscriptDebuggable = true
         }
     }
 
@@ -69,9 +67,8 @@ android {
     }
 
     packagingOptions {
-        resources.excludes.apply {
-            add("META-INF/AL2.0")
-            add("META-INF/LGPL2.1")
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
 }
@@ -80,7 +77,7 @@ dependencies {
 
     implementation("com.google.code.gson:gson:2.8.8")
     implementation("com.google.android.material:material:1.4.0")
-    implementation("com.google.accompanist:accompanist-permissions:0.19.0")
+    implementation("com.google.accompanist:accompanist-permissions:0.20.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
 
     implementation("androidx.core:core-ktx:1.6.0")
@@ -89,11 +86,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
 
-    implementation("com.squareup.okhttp3:okhttp:4.9.2")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.9.2")
+    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
     implementation("com.microsoft.appcenter:appcenter-crashes:4.3.1")
     implementation("com.microsoft.appcenter:appcenter-analytics:4.3.1")
-    implementation("com.geetest.sensebot:sensebot:4.3.1") {
+    implementation("com.geetest.sensebot:sensebot:4.3.4.5") {
         exclude("com.squareup.okhttp3","okhttp")
     }
     implementation("com.journeyapps:zxing-android-embedded:4.2.0") {

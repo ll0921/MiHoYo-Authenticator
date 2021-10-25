@@ -1,4 +1,4 @@
-package hat.auth.activities
+package hat.auth.activities.main
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -20,9 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import hat.auth.R
+import hat.auth.activities.MainActivity
 import hat.auth.data.DailyNote
 import hat.auth.data.GameRecord
 import hat.auth.data.JourneyNotes
+import hat.auth.data.MiAccount
 import hat.auth.utils.MiHoYoAPI
 import hat.auth.utils.digest
 import kotlinx.coroutines.delay
@@ -153,7 +155,7 @@ private fun MainActivity.IND() = Dialog(
                             bitmap = imageMap[h].let {
                                 if (it == null) {
                                     if (e.avatarSideIcon != "unknown") {
-                                        loadAvatar(h,u,h,imageMap)
+                                        loadImage(h,u,h,imageMap)
                                     }
                                     unknownAvatar
                                 } else {
@@ -228,7 +230,7 @@ private fun MainActivity.IND() = Dialog(
             while (isDialogShowing) {
                 if (!first) {
                     runCatching {
-                        currentDailyNote = MiHoYoAPI.getDailyNote(currentAccount)
+                        currentDailyNote = MiHoYoAPI.getDailyNote(currentAccount as MiAccount)
                         resinRecTime = currentDailyNote.resinRecoveryTime.toInt()
                     }
                 } else {

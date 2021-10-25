@@ -1,4 +1,4 @@
-package hat.auth.activities
+package hat.auth.activities.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -16,7 +16,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import hat.auth.data.CLData
+import hat.auth.activities.MainActivity
 import hat.auth.utils.*
 import hat.auth.utils.GT3.start
 import hat.auth.utils.ui.CircularProgressWithText
@@ -87,7 +87,7 @@ private fun MainActivity.onGo() {
     loadingDesc = "正在登录"
     ioScope.launch {
         runCatching {
-            CLData(phone, code).login().also {
+            MiHoYoAuth.login(phone, code).also {
                 check(!it.exists()) { "已经存在相同UID的账户了" }
             } addTo accountList
             close()

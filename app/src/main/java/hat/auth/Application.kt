@@ -1,15 +1,11 @@
 package hat.auth
 
 import android.app.Application
-import android.net.TrafficStats
 import android.os.Build
 import android.os.StrictMode
-import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
-import androidx.core.os.ExecutorCompat
+import hat.auth.utils.apply
 import hat.auth.utils.buildThreadPolicy
 import hat.auth.utils.buildVmPolicy
-import java.util.concurrent.Executors
 
 @Suppress("unused")
 class Application : Application() {
@@ -19,17 +15,29 @@ class Application : Application() {
         context = this
         if (BuildConfig.DEBUG) {
             buildVmPolicy {
-                detectAll()
+                detectActivityLeaks()
+                detectFileUriExposure()
+                detectLeakedSqlLiteObjects()
+                detectLeakedClosableObjects()
+                detectLeakedRegistrationObjects()
+                detectContentUriWithoutPermission()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // API 28
+                    detectNonSdkApiUsage()
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // API 29
+                    detectImplicitDirectBoot()
+                    detectCredentialProtectedWhileLocked()
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // API 30
+                    detectUnsafeIntentLaunch()
+                    detectIncorrectContextUse()
+                }
                 penaltyLog()
-             }.let {
-                StrictMode.setVmPolicy(it)
-            }
+            }.apply()
             buildThreadPolicy {
                 detectAll()
                 penaltyLog()
-            }.let {
-                StrictMode.setThreadPolicy(it)
-            }
+            }.apply()
             StrictMode.noteSlowCall("SlowOperation")
             CrashHandler(this)
         }

@@ -9,4 +9,13 @@
         <item name="android:windowBackground">@drawable/ac_splash</item>
     </style>
 
+    <style name="Theme.MiHoYoAuthenticator.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.MiHoYoAuthenticator.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.MiHoYoAuthenticator.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
 </resources>

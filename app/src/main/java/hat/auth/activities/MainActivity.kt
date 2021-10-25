@@ -1,30 +1,31 @@
 package hat.auth.activities
 
+import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.ExperimentalMaterialApi
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.microsoft.appcenter.AppCenter
-import com.microsoft.appcenter.analytics.Analytics
-import com.microsoft.appcenter.crashes.Crashes
-import hat.auth.utils.GT3
-import hat.auth.utils.checkUpdate
-import hat.auth.utils.getAccountList
+import hat.auth.activities.main.*
+import hat.auth.data.TapAccount
+import hat.auth.utils.*
+import hat.auth.utils.GT3.initGeetest
 import hat.auth.utils.ui.ComposeActivity
 
 class MainActivity : ComposeActivity() {
+
+    lateinit var launcher: ActivityResultLauncher<Intent>
 
     @OptIn(ExperimentalMaterialApi::class,ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setMainTheme()
-        getAccountList()
+        loadAccountList()
         init { UI() }
-        GT3.init(this)
-        AppCenter.start(
-            application,"1c793f09-3bc5-4eb7-984c-b5f3d975601f",
-            Analytics::class.java,
-            Crashes::class.java
-        )
+        initGeetest()
+        startAnalytics()
+        registerScanCallback()
+        registerLauncher()
     }
 
     override fun onResume() {
@@ -41,6 +42,17 @@ class MainActivity : ComposeActivity() {
         super.onDestroy()
         GT3.onDestroy()
         captureManager?.onDestroy()
+    }
+
+    private fun registerLauncher() {
+        launcher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) callback@{
+            if (it.resultCode == 1001) {
+                val s = checkNotNull(it.data?.getStringExtra("s"))
+                onCookieReceived(s)
+            }
+        }
     }
 
 }

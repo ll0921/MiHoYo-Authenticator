@@ -7,8 +7,8 @@ import com.google.zxing.integration.android.IntentIntegrator
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.CaptureManager
 import com.journeyapps.barcodescanner.CompoundBarcodeView
-import hat.auth.activities.barcodeView
-import hat.auth.activities.captureManager
+import hat.auth.activities.main.barcodeView
+import hat.auth.activities.main.captureManager
 import hat.auth.utils.Log
 import hat.auth.utils.currentTimeMills
 

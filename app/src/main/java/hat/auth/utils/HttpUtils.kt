@@ -4,7 +4,8 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.webkit.WebSettings
 import hat.auth.Application.Companion.context
-import hat.auth.activities.currentAccount
+import hat.auth.activities.main.currentAccount
+import hat.auth.data.MiAccount
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -19,33 +20,41 @@ object OkClients {
         append(" miHoYoBBS/$BBS_VERSION")
     }
 
-    val NORMAL by lazy {
-        OkHttpClient.Builder().addHttpLogger().build()
-    }
+    val NORMAL by lazyOkClient {}
 
-    val WEB by lazy {
-        OkHttpClient.Builder().addInterceptor { chain ->
+    val WEB by lazyOkClient {
+        addInterceptor { chain ->
             val req = chain.request().newBuilder().apply {
-                val (u,t) = currentAccount.run { uid to lsToken }
-                addHeader("Cookie","ltuid=$u;ltoken=${t.lToken}")
+                (currentAccount as MiAccount).run {
+                    addHeader("Cookie","ltuid=${uid};ltoken=${lToken}")
+                }
                 addHeader("User-Agent",UA_STRING)
             }.build()
             chain.proceed(req)
-        }.addHttpLogger().build()
+        }
     }
 
-    val SAPI by lazy {
-        OkHttpClient.Builder().addInterceptor { chain ->
+    val SAPI by lazyOkClient {
+        addInterceptor { chain ->
             val req = chain.request().newBuilder().apply {
-                val (u,t) = currentAccount.run { uid to lsToken }
-                addHeader("Cookie","stuid=$u;stoken=${t.sToken};ltuid=$u;ltoken=${t.lToken}")
+                (currentAccount as MiAccount).run {
+                    addHeader("Cookie","stuid=${uid};stoken=${sToken};ltuid=${uid};ltoken=${lToken}")
+                }
                 addDSHeader()
                 addRpcHeader()
             }.build()
             chain.proceed(req)
-        }.addHttpLogger().build()
+        }
     }
 
+    val NO_REDIRECT by lazyOkClient {
+        followRedirects(false)
+        followSslRedirects(false)
+    }
+
+    private fun lazyOkClient(block: OkHttpClient.Builder.() -> Unit) = lazy {
+        buildOkClient(block)
+    }
 }
 
 fun OkHttpClient.Builder.addHttpLogger() = apply {
@@ -125,9 +134,31 @@ fun getText(
     postBody?.let { post(postBody) }
 }.execute(client).notNullBody.string()
 
+fun Request.Builder.postFormBody(block: FormBody.Builder.() -> Unit) = post(buildFormBody(block))
+
+class CookieBuilderScope {
+
+    internal val cMap: HashMap<String,String> = hashMapOf()
+
+    fun add(key: String,value: String) {
+        cMap[key] = value
+    }
+
+}
+
+fun buildCookieString(block: CookieBuilderScope.() -> Unit) =
+    CookieBuilderScope().apply(block).cMap.map { (k,v) -> "$k=$v" }.joinToString("; ")
+
+fun cookieStringToMap(s: String) = s.split(";").map { it.trim() }.associate { ts ->
+    ts.split("=").let { it[0] to it[1] }
+}
+
 fun buildFormBody(block: FormBody.Builder.() -> Unit) = FormBody.Builder().apply(block).build()
 
 fun buildHttpRequest(block: Request.Builder.() -> Unit) = Request.Builder().apply(block).build()
+
+fun buildOkClient(block: OkHttpClient.Builder.() -> Unit) =
+    OkHttpClient.Builder().addHttpLogger().apply(block).build()
 
 fun createDynamicSecret(url: String,data: String = ""): String {
     var q = ""

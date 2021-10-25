@@ -54,33 +54,35 @@ object MiHoYoAPI {
     )["retcode"].asInt == 0
 
     @Suppress("MemberVisibilityCanBePrivate")
-    suspend fun getGameToken(uid: String, sToken: String) = getJson {
-        "$TAKUMI_AUTH_API/getGameToken?stoken=$sToken&uid=$uid"
+    suspend fun getGameToken(u: MiAccount) = getJson {
+        "$TAKUMI_AUTH_API/getGameToken?stoken=${u.sToken}&uid=${u.uid}"
     }.checkRetCode()["game_token"].asString!!
 
-    suspend fun getMultiTokenByLoginTicket(uid: String,loginTicket: String) = getJson {
-        "$TAKUMI_AUTH_API/getMultiTokenByLoginTicket?login_ticket=$loginTicket&token_types=3&uid=$uid"
+    suspend fun getMultiTokenByLoginTicket(u: MiAccount) = getJson {
+        "$TAKUMI_AUTH_API/getMultiTokenByLoginTicket?login_ticket=${u.ticket}&token_types=3&uid=${u.uid}"
     }.checkRetCode().getAsJsonArray("list").associate {
         it.asJsonObject.let { o ->
             o["name"].asString to o["token"].asString
         }
-    }.let {
-        LSToken.parse(it)
+    }.run {
+        u.copy(
+            lToken = getValue("ltoken"),
+            sToken = getValue("stoken")
+        )
     }
 
     // TODO: DATA CLASS
-    suspend fun getUserFullInfo(uid: String,sToken: String) = getJson(
-        url = "$BBSAPI/user/api/getUserFullInfo?uid=$uid",
-        header = "Cookie" to "stuid=$uid; stoken=$sToken"
+    suspend fun getUserFullInfo(u: MiAccount) = getJson(
+        url = "$BBSAPI/user/api/getUserFullInfo?uid=${u.uid}",
+        header = "Cookie" to "stuid=$${u.uid}; stoken=${u.sToken}"
     ).checkRetCode()
 
     suspend fun getUserGameRolesByCookie(
-        uid: String,
-        lToken: String,
+        u: MiAccount,
         biz: String = "hk4e_cn"
     ) = getJson(
         url = "$TAKUMI_BINDING_API/getUserGameRolesByCookie?game_biz=$biz",
-        header = "Cookie" to "ltuid=$uid; ltoken=$lToken"
+        header = "Cookie" to "ltuid=${u.uid}; ltoken=${u.lToken}"
     ).checkRetCode().getAsJsonArray("list").map {
         it.toDataClass(UserGameRole::class.java)
     }
@@ -105,14 +107,14 @@ object MiHoYoAPI {
     }
 
     suspend fun loginByPassword(
-        account: PLData,
+        pair: Pair<String,EncryptedPassword>,
         cData: CaptchaData
     ) = getJson(
         url = "$WEBAPI/login_by_password",
         postBody = buildFormBody {
             add("source", SOURCE)
-            add("account", account.username)
-            add("password", account.password.get())
+            add("account", pair.first)
+            add("password", pair.second.get())
             add("is_crypto", "true")
             addTimestamp()
             addCaptchaData(cData)
@@ -131,7 +133,7 @@ object MiHoYoAPI {
     }
 
     suspend fun confirmQRCode(
-        account: Account,
+        u: MiAccount,
         codeUrl: String
     ) = codeUrl.parseQRCodeUrl().let { urlParams ->
         getJson(
@@ -143,8 +145,8 @@ object MiHoYoAPI {
                 "payload" to mapOf(
                     "proto" to "Account",
                     "raw" to mapOf(
-                        "uid" to account.uid,
-                        "token" to getGameToken(account.uid,account.lsToken.sToken) //TODO game token cache
+                        "uid" to u.uid,
+                        "token" to getGameToken(u)
                     ).toJson()
                 )
             )
@@ -184,7 +186,7 @@ object MiHoYoAPI {
                     "baseURL" to TAKUMI_GC
                 ),
                 headers = mapOf(
-                    "User-Agent" to "Mozilla/5.0 (Linux; Android 10; Redmi Note 7 Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.101 Mobile Safari/537.36 miHoYoBBS/2.12.1",
+                    "User-Agent" to "Mozilla/5.0 (Linux; Android 12; Phone Build/000; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.101 Mobile Safari/537.36 miHoYoBBS/2.12.1",
                     "Origin" to "https://webstatic.mihoyo.com",
                     "Referer" to "https://webstatic.mihoyo.com/app/community-game-records/index.html?bbs_presentation_style=fullscreen"
                 ),
@@ -194,7 +196,7 @@ object MiHoYoAPI {
                 url = u,
                 client = OkClients.SAPI,
                 headers = mapOf(
-                    "User-Agent" to "Mozilla/5.0 (Linux; Android 10; Redmi Note 7 Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.101 Mobile Safari/537.36 miHoYoBBS/2.12.1",
+                    "User-Agent" to "Mozilla/5.0 (Linux; Android 12; Phone Build/000; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.101 Mobile Safari/537.36 miHoYoBBS/2.12.1",
                     "Origin" to "https://webstatic.mihoyo.com",
                     "Referer" to "https://webstatic.mihoyo.com/app/community-game-records/index.html?bbs_presentation_style=fullscreen"
                 ),
@@ -203,19 +205,19 @@ object MiHoYoAPI {
         }
     }
 
-    suspend fun getDailyNote(account: Account) = getJson(
-        url = "$TAKUMI_GCP/genshin/api/dailyNote?server=cn_gf01&role_id=${account.guid}",
+    suspend fun getDailyNote(u: MiAccount) = getJson(
+        url = "$TAKUMI_GCP/genshin/api/dailyNote?server=cn_gf01&role_id=${u.guid}",
         client = OkClients.SAPI
     ).checkRetCode().toDataClass(DailyNote::class.java)
 
-    suspend fun getGameRecord(account: Account) = getJson(
-        url = "$TAKUMI_GCP/genshin/api/index?server=cn_gf01&role_id=${account.guid}",
+    suspend fun getGameRecord(u: MiAccount) = getJson(
+        url = "$TAKUMI_GCP/genshin/api/index?server=cn_gf01&role_id=${u.guid}",
         client = OkClients.SAPI
     ).checkRetCode().toDataClass(GameRecord::class.java)
 
-    suspend fun getJournalNote(account:Account,cookieToken: String,month: Int = 0) = getJson(
-        url = "$HK4API/event/ys_ledger/monthInfo?month=$month&bind_uid=${account.guid}&bind_region=cn_gf01",
-        header = "Cookie" to "account_id=${account.uid}; cookie_token=$cookieToken"
+    suspend fun getJournalNote(u: MiAccount,cookieToken: String,month: Int = 0) = getJson(
+        url = "$HK4API/event/ys_ledger/monthInfo?month=$month&bind_uid=${u.guid}&bind_region=cn_gf01",
+        header = "Cookie" to "account_id=${u.uid}; cookie_token=$cookieToken"
     ).checkRetCode().toDataClass(JourneyNotes::class.java)
 
 }

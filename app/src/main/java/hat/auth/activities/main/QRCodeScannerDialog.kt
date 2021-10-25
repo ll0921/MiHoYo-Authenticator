@@ -1,4 +1,4 @@
-package hat.auth.activities
+package hat.auth.activities.main
 
 import android.Manifest
 import android.content.Intent
@@ -21,7 +21,11 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.CaptureManager
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
-import hat.auth.utils.QRCodeUrlRegex
+import hat.auth.activities.MainActivity
+import hat.auth.data.MiAccount
+import hat.auth.data.TapAccount
+import hat.auth.utils.MiHoYoUrlRegex
+import hat.auth.utils.TapUrlRegex
 import hat.auth.utils.toast
 import hat.auth.utils.ui.PermissionRequiredDialog
 import hat.auth.utils.ui.QRCodeScanner
@@ -38,20 +42,32 @@ private fun stopCamera() {
 
 private var isDialogShowing by mutableStateOf(false)
 
-fun showQRCodeScannerDialog() { isDialogShowing = true }
+private typealias ScanCallback = (BarcodeResult) -> Unit
+private var currentCallback: ScanCallback? = null
+private var currentCheckRegex: Regex? = null
+
+fun showQRCodeScannerDialog() {
+    currentCheckRegex = when (currentAccount) {
+        is MiAccount -> MiHoYoUrlRegex
+        is TapAccount -> TapUrlRegex
+        else -> throw IllegalArgumentException("Unknown account type.")
+    }
+    isDialogShowing = true
+}
+
+fun registerScanCallback(func: ScanCallback) {
+    currentCallback = func
+}
 
 @Composable
 @ExperimentalPermissionsApi
-fun MainActivity.QRCodeScannerDialog(
-    callback: (BarcodeResult) -> Unit
-) {
-    if (isDialogShowing) QCD(callback)
+fun MainActivity.QRCodeScannerDialog() {
+    if (isDialogShowing) QCD()
 }
 
 @Composable
 @ExperimentalPermissionsApi
 private fun MainActivity.QCD(
-    callback: (BarcodeResult) -> Unit,
     onDismissRequest: () -> Unit = { isDialogShowing = false }
 ) = PermissionRequiredDialog(
     permission = Manifest.permission.CAMERA,
@@ -121,10 +137,10 @@ private fun MainActivity.QCD(
                 .size(275.dp)
                 .clip(RoundedCornerShape(15.dp)),
             callback = {
-                if (text.matches(QRCodeUrlRegex)) {
+                if (text.matches(currentCheckRegex!!)) {
                     stopCamera()
                     onDismissRequest()
-                    callback(this)
+                    currentCallback!!.invoke(this)
                 } else {
                     toast("无效的二维码")
                 }
