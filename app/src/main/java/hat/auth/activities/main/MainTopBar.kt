@@ -19,9 +19,6 @@ import hat.auth.utils.checkUpdate
 import hat.auth.utils.ui.DropdownMenuItem
 import hat.auth.utils.ui.IconButton
 
-private val topAppBarContentColor      = Color(0xFF404040)
-//private val topAppBarContentNightColor = Color(0xFF404040) TODO: Dark theme
-
 class DropdownMenuItemsBuilderScope {
 
     val items = mutableMapOf<String,() -> Unit>()
@@ -47,11 +44,12 @@ fun TopAppBar(
     elevation = 10.dp,
     backgroundColor = Color.White
 ) {
+    val contentColor = Color(0xFF424242)
     var mnu by remember { mutableStateOf(false) }
     Text(
         text = "账号数量: $a",
         modifier = Modifier.padding(start = 15.dp),
-        color = topAppBarContentColor
+        color = contentColor
     )
     Box(
         modifier = Modifier.fillMaxWidth()
@@ -112,7 +110,7 @@ fun TopAppBar(
         ) {
             IconButton(
                 icon = Icons.Outlined.Add,
-                tint = topAppBarContentColor
+                tint = contentColor
             ) {
                 mnu = true
             }

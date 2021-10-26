@@ -1,21 +1,19 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Theme.MiHoYoAuthenticator" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:statusBarColor">#FFFFFF</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+    </style>
+
+    <style name="Theme.MiHoYoAuthenticator.TapAuth" parent="Theme.MiHoYoAuthenticator">
+        <item name="android:statusBarColor">#F6F7F9</item>
+        <!--item name="android:forceDarkAllowed" tools:targetApi="q">true</item-->
     </style>
 
     <style name="welcome_theme" parent="android:Theme.Material.Light.NoActionBar.Fullscreen">
         <item name="android:windowBackground">@drawable/ac_splash</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
-
-    <style name="Theme.MiHoYoAuthenticator.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
-    <style name="Theme.MiHoYoAuthenticator.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="Theme.MiHoYoAuthenticator.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 </resources>

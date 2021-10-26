@@ -45,6 +45,8 @@ val deviceId by lazy {
     }
 }
 
+var loaded = false
+
 fun buildThreadPolicy(block: StrictMode.ThreadPolicy.Builder.() -> Unit): StrictMode.ThreadPolicy =
     StrictMode.ThreadPolicy.Builder().apply(block).build()
 

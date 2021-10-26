@@ -20,12 +20,15 @@ class MainActivity : ComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setMainTheme()
-        loadAccountList()
         init { UI() }
         initGeetest()
-        startAnalytics()
-        registerScanCallback()
         registerLauncher()
+        if (!loaded) {
+            loadAccountList()
+            startAnalytics()
+            registerScanCallback()
+            loaded = true
+        }
     }
 
     override fun onResume() {

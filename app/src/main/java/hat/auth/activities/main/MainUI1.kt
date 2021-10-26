@@ -23,7 +23,6 @@ import hat.auth.utils.*
 import hat.auth.utils.ui.CircleImage
 import hat.auth.utils.ui.IconButton
 import hat.auth.utils.ui.TextButton
-import kotlinx.coroutines.launch
 
 @Composable
 fun AccountsColumnItem(
@@ -43,7 +42,7 @@ fun AccountsColumnItem(
     var showInfoButton = true
     val uid = if (ia !is MiAccount) {
         showInfoButton = false
-        ia.uid
+        ia.uid + " (Tap)"
     } else {
         ia.guid
     }
@@ -58,18 +57,18 @@ fun AccountsColumnItem(
             bitmap = avatar,
             modifier = Modifier.size(56.dp)
         )
-        val c = Color(0xBF000000)
+        val contentColor = Color(0xFF424242)
         Column(
             modifier = Modifier.padding(start = 12.dp)
         ) {
             Text(
                 text = ia.name,
                 fontSize = 20.sp,
-                color = c
+                color = contentColor
             )
             Text(
                 text = uid,
-                color = c
+                color = contentColor
             )
         }
         Row(
@@ -78,8 +77,8 @@ fun AccountsColumnItem(
         ) {
             if (showInfoButton) {
                 IconButton(
-                    tint = c,
-                    icon = Icons.Outlined.Info,
+                    tint = contentColor,
+                    icon = Icons.Outlined.Info
                 ) {
                     currentAccount = ia
                     onInfoClick()
@@ -87,7 +86,7 @@ fun AccountsColumnItem(
             }
             if (!showInfoButton && BuildConfig.DEBUG) {
                 IconButton(
-                    tint = c,
+                    tint = contentColor,
                     icon = Icons.Outlined.Build
                 ) {
                     currentAccount = ia
@@ -95,7 +94,7 @@ fun AccountsColumnItem(
                 }
             }
             IconButton(
-                tint = c,
+                tint = contentColor,
                 icon = Icons.Outlined.Delete,
             ) {
                 currentAccount = ia
