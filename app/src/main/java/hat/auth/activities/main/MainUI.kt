@@ -3,14 +3,19 @@ package hat.auth.activities.main
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.zIndex
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import hat.auth.Application.Companion.context
 import hat.auth.R
@@ -31,10 +36,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.io.File
 
-/** ========================================== Avatar ========================================== **/
-
 private val cJobs = mutableMapOf<String, Job>()
-val loadedBitmaps = mutableStateMapOf<String,ImageBitmap>() // TODO: Move to utils
+val loadedBitmaps = mutableStateMapOf<String,ImageBitmap>()
 
 private val imageCacheDir by lazy {
     File(context.cacheDir,"imageCache").apply { mkdir() }
@@ -85,7 +88,7 @@ fun MainActivity.loadImage(
 var currentAccount by mutableStateOf(IAccount("","",""))
 
 fun MainActivity.processException(e: Throwable) {
-    Log.d(tr = e)
+    Log.e(tr = e)
     toast(e.message ?: "未知错误")
 }
 
@@ -93,30 +96,36 @@ fun MainActivity.processException(e: Throwable) {
 
 @Composable
 @ExperimentalMaterialApi
+@ExperimentalAnimationApi
+@ExperimentalComposeUiApi
 @ExperimentalPermissionsApi
 fun MainActivity.UI() {
     val lst = remember { accountList }
     TopAppBar(
         a = lst.size,
         normalDropdownItems = buildDropdownMenuItems {
-            add("验证码登录") {
-                showCodeLoginDialog()
+            add("米哈游登录") {
+                showMiHuYoLoginDialog()
             }
-            add("密码登录") {
-                showPasswordLoginDialog()
-            }
-            add("Taptap1") {
+            add("Taptap登录(Beta)") {
                 launcher.launch(Intent(this@UI,TapAuthActivity::class.java))
             }
         },
-        debugDropdownItems = buildDropdownMenuItems { }
+        debugDropdownItems = buildDropdownMenuItems {
+            add("decrypt") {
+                ioScope.launch {
+                    decryptAll()
+                    toast("done.")
+                }
+            }
+        }
     )
     val avatars = remember { loadedBitmaps }
     LazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().background(Color.White).zIndex(-233F)
     ) {
         items(lst) { a ->
-            AccountsColumnItem(
+            AccountItem(
                 ia = a,
                 avatar = avatars[a.avatarHash].let {
                     if (it == null) {
@@ -166,9 +175,8 @@ fun MainActivity.UI() {
     InfoDialog()
     AboutDialog()
     LoadingDialog()
-    CodeLoginDialog()
+    MiHoYoLoginDialog()
     DeleteAccountDialog()
-    PasswordLoginDialog()
     QRCodeScannerDialog()
 }
 
@@ -228,9 +236,20 @@ fun MainActivity.registerScanCallback() = registerScanCallback { result ->
     }
 }
 
+private var loadingDialogText by mutableStateOf("正在处理请求")
 private var isLoadingDialogShowing by mutableStateOf(false)
+
+fun showLoadingDialog(msg: String = "") {
+    if (msg.isNotEmpty()) loadingDialogText = msg
+    isLoadingDialogShowing = true
+}
+
+fun hideLoadingDialog() {
+    loadingDialogText = "正在处理请求"
+    isLoadingDialogShowing = false
+}
 
 @Composable
 fun MainActivity.LoadingDialog() = run {
-    if (isLoadingDialogShowing) CircularProgressDialog("正在处理请求")
+    if (isLoadingDialogShowing) CircularProgressDialog(loadingDialogText)
 }

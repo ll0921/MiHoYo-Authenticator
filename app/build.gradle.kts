@@ -13,8 +13,8 @@ android {
         applicationId = "hat.auth"
         minSdk = 26
         targetSdk = 30
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.0"
         multiDexEnabled = true
         resourceConfigurations.apply {
             clear()
@@ -24,23 +24,25 @@ android {
 
     buildTypes {
 
+        fun com.android.build.api.dsl.ApplicationBuildType.enableMinify() {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro")
+        }
+
         debug {
             versionNameSuffix = "-debug"
             applicationIdSuffix = ".debug"
         }
 
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro")
+            enableMinify()
             versionNameSuffix = "-release"
         }
 
         create("beta") {
             initWith(getByName("debug"))
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro")
+            enableMinify()
             versionNameSuffix = "-beta"
             isDebuggable = true
             isJniDebuggable = true
@@ -99,7 +101,6 @@ dependencies {
 
     implementation("androidx.compose.ui:ui:$vCompose")
     implementation("androidx.compose.material:material:$vCompose")
-    implementation("androidx.compose.ui:ui-tooling-preview:$vCompose")
     debugImplementation("androidx.compose.ui:ui-tooling:$vCompose")
 
 }

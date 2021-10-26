@@ -4,10 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.ui.ExperimentalComposeUiApi
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import hat.auth.activities.main.*
-import hat.auth.data.TapAccount
 import hat.auth.utils.*
 import hat.auth.utils.GT3.initGeetest
 import hat.auth.utils.ui.ComposeActivity
@@ -16,7 +17,12 @@ class MainActivity : ComposeActivity() {
 
     lateinit var launcher: ActivityResultLauncher<Intent>
 
-    @OptIn(ExperimentalMaterialApi::class,ExperimentalPermissionsApi::class)
+    @OptIn(
+        ExperimentalMaterialApi::class,
+        ExperimentalAnimationApi::class,
+        ExperimentalComposeUiApi::class,
+        ExperimentalPermissionsApi::class
+    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setMainTheme()

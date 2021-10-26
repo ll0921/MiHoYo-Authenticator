@@ -60,7 +60,7 @@ object OkClients {
 fun OkHttpClient.Builder.addHttpLogger() = apply {
     val i = HttpLoggingInterceptor(Log.okLogger)
     i.level = HttpLoggingInterceptor.Level.BODY
-    this.addInterceptor(i)
+    addInterceptor(i)
 }
 
 fun Request.execute(client: OkHttpClient = OkClients.NORMAL) = client.newCall(this).execute()

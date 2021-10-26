@@ -25,7 +25,7 @@ import hat.auth.utils.ui.IconButton
 import hat.auth.utils.ui.TextButton
 
 @Composable
-fun AccountsColumnItem(
+fun AccountItem(
     ia: IAccount,
     avatar: ImageBitmap,
     onInfoClick: () -> Unit,

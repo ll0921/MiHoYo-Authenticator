@@ -84,13 +84,13 @@ object TapAPI {
 
     data class TapOAuthCode(
         @SerializedName("device_code")
-        val deviceCode: String,
+        val deviceCode: String = "",
         @SerializedName("user_code")
-        val user: String,
+        val user: String = "",
         @SerializedName("verification_url")
-        val verificationUrl: String,
+        val verificationUrl: String = "",
         @SerializedName("qrcode_url")
-        private val qrcodeUrl: String
+        private val qrcodeUrl: String = ""
     ) {
         val url get() = checkNotNull(qrcodeUrl.toHttpUrl().queryParameterValue(0))
     }

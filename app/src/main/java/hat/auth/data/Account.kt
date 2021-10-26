@@ -1,9 +1,10 @@
 package hat.auth.data
 
+import androidx.annotation.Keep
 import hat.auth.utils.digest
 import com.google.gson.annotations.SerializedName
-import hat.auth.utils.cookieStringToMap
 
+@Keep
 open class IAccount(
     @Ignore
     open val uid:String,
@@ -13,6 +14,7 @@ open class IAccount(
     open val avatar: String
 )
 
+@Keep
 data class MiAccount(
     @SerializedName("a")
     val guid: String = "0",
@@ -32,6 +34,7 @@ data class MiAccount(
 
 val IAccount.avatarHash get() = avatar.digest("MD5")
 
+@Keep
 data class TapAccount(
     @CookieName("locale")
     @SerializedName("a")

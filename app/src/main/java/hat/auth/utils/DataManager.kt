@@ -1,17 +1,17 @@
 package hat.auth.utils
 
 import android.content.Context
-import androidx.annotation.Keep
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
+import com.google.gson.JsonObject
 import hat.auth.Application.Companion.context
 import hat.auth.data.IAccount
 import hat.auth.data.MiAccount
 import hat.auth.data.TapAccount
 import hat.auth.security.asEncryptedFile
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
@@ -29,7 +29,7 @@ fun loadAccountList() = ioScope.launch {
 fun File.getCreationTime() =
     Files.readAttributes(toPath(),BasicFileAttributes::class.java).creationTime().toMillis()
 
-private fun File.g() = with(/*asEncryptedFile().*/readText()) {
+private fun File.g() = with(asEncryptedFile().readText()) {
     when (this@g.nameWithoutExtension[0]) {
         'm' -> {
             gson.fromJson(this,MiAccount::class.java)
@@ -52,16 +52,25 @@ private fun IAccount.getFile() = run {
 fun IAccount.exists() = getFile().exists()
 
 infix fun IAccount.addTo(list: SnapshotStateList<IAccount>) = gson.toJson(this).let {
-    getFile()/*.asEncryptedFile()*/.writeText(it)
+    getFile().asEncryptedFile().writeText(it)
     list.add(this)
 }
 
 fun <T: IAccount> T.update() = apply {
-    getFile()/*.asEncryptedFile()*/.writeText(gson.toJson(this))
+    getFile().asEncryptedFile().writeText(gson.toJson(this))
 }
 
 infix fun IAccount.removeFrom(list: SnapshotStateList<IAccount>) = getFile().delete().apply {
     if (this) list.remove(this@removeFrom)
+}
+
+suspend fun decryptAll() = withContext(Dispatchers.IO) {
+    dataDir.listFiles()?.forEach {
+        File(dataDir,"d_${it.name}").run {
+            createNewFile()
+            writeText(it.asEncryptedFile().readText())
+        }
+    }
 }
 
 fun migrate() {
@@ -69,20 +78,22 @@ fun migrate() {
         it.sortBy { f -> f.getCreationTime() }
     }
     if (files?.getOrNull(0)?.nameWithoutExtension?.toIntOrNull() != null) {
-        files.map { it/*.asEncryptedFile()*/.readText() }.forEach {
-            val a = gson.fromJson(it,Account::class.java)
-            val (l,s) = a.lsToken
+        files.forEach {
+            val old = it.asEncryptedFile().readText()
+            val a = gson.fromJson(old,JsonObject::class.java)
+            val b = a.getAsJsonObject("tokens")
             val nA = MiAccount(
-                uid = a.uid,
-                guid = a.guid,
-                name = a.name,
-                ticket = a.ticket,
-                lToken = l,
-                sToken = s,
-                avatar = a.avatar
+                uid = a["uid"].asString,
+                guid = a["guid"].asString,
+                name = a["name"].asString,
+                ticket = a["ticket"].asString,
+                lToken = b["lToken"].asString,
+                sToken = b["sToken"].asString,
+                avatar = a["aUrl"].asString
             )
-            Log.d("Migrate","#${a.uid} done.")
+            Log.i("Migrate", a["uid"].asString)
             nA addTo accountList
+            it.delete()
         }
     } else {
         files?.forEach {
@@ -90,25 +101,3 @@ fun migrate() {
         }
     }
 }
-
-@Keep
-private data class Account(
-    @SerializedName("uid")
-    val uid: String = "0",
-    @SerializedName("guid")
-    val guid: String = "0",
-    @SerializedName("name")
-    val name: String = "null",
-    @SerializedName("ticket")
-    val ticket: String = "null",
-    @SerializedName("tokens")
-    val lsToken: LSToken = LSToken("null","null"),
-    @SerializedName("aUrl")
-    val avatar: String = "https://img-static.mihoyo.com/avatar/avatar1.png"
-)
-
-@Keep
-private data class LSToken(
-    val lToken: String,
-    val sToken: String
-)
