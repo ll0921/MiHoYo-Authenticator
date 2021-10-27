@@ -1,26 +1,30 @@
 name: Android CI
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  - push
+  - pull_request
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: set up JDK 11
+    - name: checkout repository
+      uses: actions/checkout@v2
+    - name: validate gradle wrapper
+      uses: gradle/wrapper-validation-action@v1
+    - name: set up jdk 11
       uses: actions/setup-java@v2
       with:
         java-version: '11'
         distribution: 'adopt'
         cache: gradle
-
-    - name: Grant execute permission for gradlew
+    - name: make gradle wrapper executable
       run: chmod +x gradlew
-    - name: Build and pack unsigned apk
+    - name: build
       run: ./gradlew :app:packageRelease
+    - name: capture build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: Artifacts
+        path: app/build/outputs/apk/release
+        
