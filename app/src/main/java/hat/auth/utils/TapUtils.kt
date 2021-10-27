@@ -104,8 +104,9 @@ object TapAPI {
 
     private fun Response.getStringBody() = notNullBody.string()
 
-    private fun JsonObject.checkSuccess(): JsonObject = run {
-        if (!this["success"].asBoolean) throw IllegalStateException()
-        getAsJsonObject("data")
+    private fun JsonObject.checkSuccess(): JsonObject = getAsJsonObject("data").apply {
+        if (!this@checkSuccess.get("success").asBoolean) {
+            throw IllegalStateException(get("msg").asString)
+        }
     }
 }

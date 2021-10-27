@@ -22,9 +22,7 @@ object MiHoYoAuth {
         /* 通过登录凭据获取两份令牌(ltoken,stoken) */
         user = MiHoYoAPI.getMultiTokenByLoginTicket(user)
         /* 获取米游社个人信息(头像Url) */
-        val avatar = with(MiHoYoAPI.getUserFullInfo(user)) {
-            getAsJsonObject("user_info")["avatar_url"].asString
-        }
+        val avatar = MiHoYoAPI.getAvatar(user)
         /* 获取玩家信息(UID,昵称) */
         val profile = MiHoYoAPI.getUserGameRolesByCookie(user).getOrNull(0)
         checkNotNull(profile) { "空账号" }

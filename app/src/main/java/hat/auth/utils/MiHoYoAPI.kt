@@ -74,8 +74,11 @@ object MiHoYoAPI {
     // TODO: DATA CLASS
     suspend fun getUserFullInfo(u: MiAccount) = getJson(
         url = "$BBSAPI/user/api/getUserFullInfo?uid=${u.uid}",
-        header = "Cookie" to "stuid=$${u.uid}; stoken=${u.sToken}"
+        header = "Cookie" to "stuid=${u.uid}; stoken=${u.sToken}"
     ).checkRetCode()
+
+    suspend fun getAvatar(u: MiAccount): String =
+        getUserFullInfo(u).getAsJsonObject("user_info")["avatar_url"].asString
 
     suspend fun getUserGameRolesByCookie(
         u: MiAccount,

@@ -9,6 +9,7 @@ import hat.auth.data.IAccount
 import hat.auth.data.MiAccount
 import hat.auth.data.TapAccount
 import hat.auth.security.asEncryptedFile
+import hat.auth.utils.TapAPI.getPage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -16,14 +17,38 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 
+val accountList = mutableStateListOf<IAccount>()
+
 private val dataDir by lazy {
     context.getDir("accounts",Context.MODE_PRIVATE)
 }
 
-val accountList = mutableStateListOf<IAccount>()
-
 fun loadAccountList() = ioScope.launch {
     migrate()
+}
+
+suspend fun refreshAccount() {
+    val cl = hashMapOf<Int,IAccount>()
+    accountList.forEachIndexed { i, old ->
+        if (old is MiAccount) {
+            val avatar = MiHoYoAPI.getAvatar(old)
+            val name = MiHoYoAPI.getUserGameRolesByCookie(old)[0].name
+            old.copy(name = name, avatar = avatar).takeIf { old != it }?.let {
+                cl[i] = it
+            }
+        } else if (old is TapAccount) {
+            with(TapAPI.getCode().getPage(old)) {
+                val p = second.getBasicProfile()
+                old.copy(name = p.name, avatar = p.avatar).takeIf { old != it }?.let {
+                    cl[i] = it
+                }
+            }
+        }
+    }
+    cl.forEach { (i, a) ->
+        accountList[i] = a
+        a.save()
+    }
 }
 
 fun File.getCreationTime() =
@@ -51,17 +76,20 @@ private fun IAccount.getFile() = run {
 
 fun IAccount.exists() = getFile().exists()
 
-infix fun IAccount.addTo(list: SnapshotStateList<IAccount>) = gson.toJson(this).let {
-    getFile().asEncryptedFile().writeText(it)
+suspend infix fun IAccount.addTo(list: SnapshotStateList<IAccount>) {
     list.add(this)
+    save()
 }
 
-fun <T: IAccount> T.update() = apply {
-    getFile().asEncryptedFile().writeText(gson.toJson(this))
+private suspend fun IAccount.save() = withContext(Dispatchers.IO) {
+    val json = gson.toJson(this@save)
+    getFile().also {
+        it.delete()
+    }.asEncryptedFile().writeText(json)
 }
 
-infix fun IAccount.removeFrom(list: SnapshotStateList<IAccount>) = getFile().delete().apply {
-    if (this) list.remove(this@removeFrom)
+infix fun IAccount.removeFrom(list: SnapshotStateList<IAccount>) = getFile().delete().also {
+    if (it) list.remove(this)
 }
 
 suspend fun decryptAll() = withContext(Dispatchers.IO) {
@@ -73,7 +101,7 @@ suspend fun decryptAll() = withContext(Dispatchers.IO) {
     }
 }
 
-fun migrate() {
+private suspend fun migrate() {
     val files = dataDir.listFiles()?.also {
         it.sortBy { f -> f.getCreationTime() }
     }

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.skydoves.landscapist.coil.CoilImage
 import hat.auth.R
 import hat.auth.activities.MainActivity
 import hat.auth.data.DailyNote
@@ -26,8 +27,12 @@ import hat.auth.data.GameRecord
 import hat.auth.data.JourneyNotes
 import hat.auth.data.MiAccount
 import hat.auth.utils.MiHoYoAPI
-import hat.auth.utils.digest
+import hat.auth.utils.getDrawableAsImageBitmap
 import kotlinx.coroutines.delay
+
+private val unknownAvatar by lazy {
+    getDrawableAsImageBitmap(R.drawable.ic_unknown)
+}
 
 private var currentDailyNote    by mutableStateOf(DailyNote())
 private var currentGameRecord   by mutableStateOf(GameRecord())
@@ -55,12 +60,12 @@ private fun hm(i: Int)  = "%02d:%02d".format(i / 3600, (i % 3600) / 60)
 private fun hms(i: Int) = "(%02d:%02d:%02d)".format(i / 3600, (i % 3600) / 60, i % 60)
 
 @Composable
+@Suppress("unused")
 private fun MainActivity.IND() = Dialog(
     onDismissRequest = {
         isDialogShowing = false
     }
 ) {
-    val imageMap = remember { loadedBitmaps }
     var resinRecTime = currentDailyNote.resinRecoveryTime.toInt()
     var remaining by remember { mutableStateOf(hms(resinRecTime)) }
     Column(
@@ -131,7 +136,6 @@ private fun MainActivity.IND() = Dialog(
                     DailyNote.Expedition("unknown","-1")
                 }
                 val u = "${e.avatarSideIcon}?x-oss-process=image/resize,p_100/crop,x_20,y_33,w_95,h_95"
-                val h = u.digest("MD5")
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -151,21 +155,12 @@ private fun MainActivity.IND() = Dialog(
                                     shape = CircleShape
                                 )
                         )
-                        Image(
-                            bitmap = imageMap[h].let {
-                                if (it == null) {
-                                    if (e.avatarSideIcon != "unknown") {
-                                        loadImage(h,u,h,imageMap)
-                                    }
-                                    unknownAvatar
-                                } else {
-                                    it
-                                }
-                            },
-                            contentDescription = null,
+                        CoilImage(
+                            imageModel = u,
                             modifier = Modifier
                                 .size(36.dp)
                                 .align(Alignment.TopCenter),
+                            placeHolder = unknownAvatar,
                             contentScale = ContentScale.Inside
                         )
                     }

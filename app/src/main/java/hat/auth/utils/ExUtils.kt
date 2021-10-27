@@ -18,10 +18,10 @@ import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
 import hat.auth.Application.Companion.context
+import hat.auth.BuildConfig
 import hat.auth.data.Ignore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -63,21 +63,7 @@ fun getDrawableAsBitmap(@DrawableRes resId: Int) =
 fun getDrawableAsImageBitmap(@DrawableRes resId: Int) = getDrawableAsBitmap(resId).asImageBitmap()
 
 fun Activity.startAnalytics() {
-    AppCenter.start(application, APP_SECRET, Analytics::class.java, Crashes::class.java)
-}
-
-suspend fun Activity.getBitmap(
-    url: String,
-) = withContext(Dispatchers.IO) {
-    runCatching {
-        val bm = buildHttpRequest {
-            url(url)
-        }.execute().body?.bitmap()
-        checkNotNull(bm)
-    }.onFailure {
-        it.printStackTrace()
-        toast("图片加载失败: ${it.message}")
-    }.getOrNull()
+    AppCenter.start(application,BuildConfig.APP_CENTER_KEY,Analytics::class.java,Crashes::class.java)
 }
 
 fun Activity.toast(
@@ -116,8 +102,6 @@ fun String.digest(algorithm: String): String = MessageDigest.getInstance(algorit
     update(toByteArray())
     BigInteger(1,digest()).toString(16)
 }
-
-private const val APP_SECRET = "1c793f09-3bc5-4eb7-984c-b5f3d975601f"
 
 private val CustomExclusionStrategy = object : ExclusionStrategy {
     override fun shouldSkipClass(clazz: Class<*>) = false

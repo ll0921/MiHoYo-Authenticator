@@ -1,7 +1,6 @@
 package hat.auth.data
 
 import androidx.annotation.Keep
-import hat.auth.utils.digest
 import com.google.gson.annotations.SerializedName
 
 @Keep
@@ -31,8 +30,6 @@ data class MiAccount(
     @SerializedName("g")
     override val avatar: String = "https://img-static.mihoyo.com/avatar/avatar1.png"
 ): IAccount(uid,name,avatar)
-
-val IAccount.avatarHash get() = avatar.digest("MD5")
 
 @Keep
 data class TapAccount(

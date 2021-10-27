@@ -1,8 +1,6 @@
 package hat.auth.activities.main
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,77 +11,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.zIndex
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import hat.auth.Application.Companion.context
-import hat.auth.R
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import hat.auth.activities.MainActivity
 import hat.auth.activities.TapAuthActivity
 import hat.auth.data.IAccount
 import hat.auth.data.MiAccount
 import hat.auth.data.TapAccount
-import hat.auth.data.avatarHash
 import hat.auth.utils.*
 import hat.auth.utils.TapAPI.confirm
 import hat.auth.utils.TapAPI.getPage
 import hat.auth.utils.ui.CircularProgressDialog
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import java.io.File
-
-private val cJobs = mutableMapOf<String, Job>()
-val loadedBitmaps = mutableStateMapOf<String,ImageBitmap>()
-
-private val imageCacheDir by lazy {
-    File(context.cacheDir,"imageCache").apply { mkdir() }
-}
-
-private val defaultAvatar by lazy {
-    getDrawableAsImageBitmap(R.drawable.ic_avatar_default)
-}
-
-val unknownAvatar by lazy {
-    getDrawableAsImageBitmap(R.drawable.ic_unknown)
-}
-
-private suspend fun MainActivity.getAvatar(
-    url: String,
-    callback: (ImageBitmap) -> Unit
-) = withContext(Dispatchers.IO) {
-    val cache = File(imageCacheDir,url.digest("MD5"))
-    if (cache.exists()) {
-        BitmapFactory.decodeFile(cache.absolutePath)
-    } else {
-        getBitmap(url)?.apply {
-            cache.outputStream().runCatching {
-                compress(Bitmap.CompressFormat.PNG,100,this)
-            }.onFailure {
-                it.printStackTrace()
-            }
-        }
-    }?.asImageBitmap()?.let(callback)
-}
-
-fun MainActivity.loadImage(
-    tid: String,
-    url: String,
-    urlHash: String,
-    map: MutableMap<String, ImageBitmap>
-) {
-    if (cJobs[tid] == null) {
-        cJobs[tid] = ioScope.launch {
-            getAvatar(url) {
-                map[urlHash] = it
-            }
-            cJobs.remove(tid)
-        }
-    }
-}
 
 var currentAccount by mutableStateOf(IAccount("","",""))
 
@@ -120,55 +63,64 @@ fun MainActivity.UI() {
             }
         }
     )
-    val avatars = remember { loadedBitmaps }
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Color.White).zIndex(-233F)
+    var refreshing by remember { mutableStateOf(false) }
+    SwipeRefresh(
+        state = rememberSwipeRefreshState(refreshing),
+        onRefresh = { refreshing = true },
+        modifier = Modifier.zIndex(-233F),
+        indicator = { state, trigger ->
+            SwipeRefreshIndicator(
+                state = state,
+                refreshTriggerDistance = trigger,
+                contentColor = Color(0xFF2196F3)
+            )
+        }
     ) {
-        items(lst) { a ->
-            AccountItem(
-                ia = a,
-                avatar = avatars[a.avatarHash].let {
-                    if (it == null) {
-                        loadImage(a.uid,a.avatar,a.avatarHash,avatars)
-                        defaultAvatar
-                    } else it
-                },
-                onInfoClick = {
-                    ioScope.launch {
-                        isLoadingDialogShowing = true
-                        runCatching {
-                            val mA = currentAccount as MiAccount
-                            val dn = MiHoYoAPI.getDailyNote(mA)
-                            val gr = MiHoYoAPI.getGameRecord(mA)
-                            val jn = with(MiHoYoAPI.getCookieToken(mA.uid,mA.sToken)) {
-                                MiHoYoAPI.getJournalNote(mA,this)
-                            }
-                            showInfoDialog(dn,gr,jn)
-                        }.onFailure {
-                            processException(it)
-                        }
-                        isLoadingDialogShowing = false
-                    }
-                },
-                onTestClick = {
-                    ioScope.launch {
-                        isLoadingDialogShowing = true
-                        runCatching {
-                            (currentAccount as? TapAccount)?.let {
-                                val c = TapAPI.getCode()
-                                val s = with(c.getPage(it)) {
-                                    second.confirm(first,c.verificationUrl)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            items(lst) { a ->
+                AccountItem(
+                    ia = a,
+                    onInfoClick = {
+                        ioScope.launch {
+                            isLoadingDialogShowing = true
+                            runCatching {
+                                val mA = currentAccount as MiAccount
+                                val dn = MiHoYoAPI.getDailyNote(mA)
+                                val gr = MiHoYoAPI.getGameRecord(mA)
+                                val jn = with(MiHoYoAPI.getCookieToken(mA.uid,mA.sToken)) {
+                                    MiHoYoAPI.getJournalNote(mA,this)
                                 }
-                                toast("Success: $s")
+                                showInfoDialog(dn,gr,jn)
+                            }.onFailure {
+                                processException(it)
                             }
-                        }.onFailure {
-                            processException(it)
+                            isLoadingDialogShowing = false
                         }
-                        isLoadingDialogShowing = false
+                    },
+                    onTestClick = {
+                        ioScope.launch {
+                            isLoadingDialogShowing = true
+                            runCatching {
+                                (currentAccount as? TapAccount)?.let {
+                                    val c = TapAPI.getCode()
+                                    val s = with(c.getPage(it)) {
+                                        second.confirm(first,c.verificationUrl)
+                                    }
+                                    toast("Success: $s")
+                                }
+                            }.onFailure {
+                                processException(it)
+                            }
+                            isLoadingDialogShowing = false
+                        }
                     }
+                ) {
+                    showQRCodeScannerDialog()
                 }
-            ) {
-                showQRCodeScannerDialog()
             }
         }
     }
@@ -178,6 +130,16 @@ fun MainActivity.UI() {
     MiHoYoLoginDialog()
     DeleteAccountDialog()
     QRCodeScannerDialog()
+    LaunchedEffect(refreshing) {
+        if (refreshing) {
+            runCatching {
+                refreshAccount()
+            }.onFailure {
+                processException(it)
+            }
+            refreshing = false
+        }
+    }
 }
 
 fun MainActivity.onCookieReceived(s: String) {
