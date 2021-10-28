@@ -1,4 +1,4 @@
-![Codacy grade](https://img.shields.io/codacy/grade/b704176956fd4045baa9f15712558683)
-![Last Commit](https://img.shields.io/github/last-commit/HolographicHat/MiHoYo-Authenticator)
+![Compose Version](https://img.shields.io/badge/Jetpack%20Compose-1.1.0--alpha06-brightgreen)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/HolographicHat/MiHoYo-Authenticator/Android%20CI)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/HolographicHat/MiHoYo-Authenticator)
-![Code size](https://img.shields.io/github/languages/code-size/HolographicHat/MiHoYo-Authenticator)
+![GitHub all releases](https://img.shields.io/github/downloads/HolographicHat/MiHoYo-Authenticator/total)

@@ -15,7 +15,7 @@ value class EncryptedPassword(private val p: String) {
 
         const val PublicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDDvekdPMHN3AYhm/vktJT+YJr7cI5DcsNKqdsx5DZX0gDuWFuIjzdwButrIYPNmRJ1G8ybDIF7oDW2eEpm5sMbL9zs\n9ExXCdvqrn51qELbqj0XxtMTIpaCHFSI50PfPpTFV9Xt/hmyVwokoOXFlAEgCn+Q\nCgGs52bFoYMtyi+xEQIDAQAB\n"
 
-        fun String.encrypt() = Base64.decode(PublicKey).let {
+        fun String.encrypt() = Base64.decode(PublicKey)!!.let {
             cipher("RSA/NONE/PKCS1Padding") {
                 init(Cipher.ENCRYPT_MODE, X509EncodedKeySpec(it).toPublicKey())
             }.doFinal(encodeToByteArray())

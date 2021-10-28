@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.application")
     id("kotlin-android")
+    id("com.android.application")
 }
 
 val vCompose = "1.1.0-alpha06"
@@ -12,7 +12,7 @@ android {
     defaultConfig {
         applicationId = "hat.auth"
         minSdk = 26
-        targetSdk = 30
+        targetSdk = 31
         versionCode = 3
         versionName = "1.1.0"
         multiDexEnabled = true

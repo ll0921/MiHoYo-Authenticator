@@ -20,6 +20,8 @@
 
 package hat.auth.security;
 
+import androidx.annotation.Nullable;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -190,6 +192,7 @@ public final class  Base64 {
      * @param encoded string containing Base64 data
      * @return Array containind decoded data.
      */
+    @Nullable
     public static byte[] decode(@NotNull String encoded) {
 
         char[] base64Data = encoded.toCharArray();
