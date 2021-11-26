@@ -112,13 +112,21 @@ private fun MainActivity.IND() = Dialog(
             with(currentJourneyNotes.monthData) {
                 Oculi(
                     resId = R.drawable.ic_primogem,
-                    text = "$currentPrimogems (${primogemsRate}%)",
+                    text = if (currentPrimogems == primogemsRate * 100) {
+                        "$currentPrimogems"
+                    } else {
+                        "$currentPrimogems (${primogemsRate}%)"
+                    },
                     horizontalSpacedBy = 5.dp,
                     size = 24.dp
                 )
                 Oculi(
                     resId = R.drawable.ic_mora,
-                    text = "$currentMora (${moraRate}%)",
+                    text = if (currentMora == moraRate * 100) {
+                        "$currentMora"
+                    } else {
+                        "$currentMora (${moraRate}%)"
+                    },
                     horizontalSpacedBy = 5.dp,
                     size = 24.dp
                 )

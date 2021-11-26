@@ -29,7 +29,7 @@ import java.util.*
 import kotlin.random.Random
 
 val ioScope = CoroutineScope(Dispatchers.IO)
-val MiHoYoUrlRegex = Regex("https://user\\.mihoyo\\.com/qr_code_in_game\\.html\\?app_id=\\d&app_name=[%A-Z0-9]+&bbs=true&biz_key=\\w+&expire=\\d{10}&ticket=[a-f0-9]{24}")
+val MiHoYoUrlRegex = Regex("https://user\\.mihoyo\\.com/qr_code_in_game\\.html\\?app_id=\\d&app_name=[%A-Z0-9]+&bbs=(?:true|false)&biz_key=\\w+&expire=\\d{10}&ticket=[a-f0-9]{24}")
 val PhoneNumRegex = Regex("^1(?:3\\d{3}|5[^4\\D]\\d{2}|8\\d{3}|7(?:[0-35-9]\\d{2}|4(?:0\\d|1[0-2]|9\\d))|9[0-35-9]\\d{2}|6[2567]\\d{2}|4(?:(?:10|4[01])\\d{3}|[68]\\d{4}|[579]\\d{2}))\\d{6}\$")
 
 val currentTimeSeconds get() = currentTimeMills / 1000
